@@ -30,6 +30,22 @@ local function ConcatBuffers(...)
 	return Result
 end
 
+local function ConstantTimeCompare(BufferA: buffer, BufferB: buffer): boolean
+	local LengthA = buffer.len(BufferA)
+	local LengthB = buffer.len(BufferB)
+	
+	local Difference = LengthA ~ LengthB
+	local CompareLength = math.min(LengthA, LengthB)
+	
+	for Index = 0, CompareLength - 1 do
+		local ByteA = buffer.readu8(BufferA, Index)
+		local ByteB = buffer.readu8(BufferB, Index)
+		Difference = bit32.bor(Difference, bit32.bxor(ByteA, ByteB))
+	end
+	
+	return Difference == 0
+end
+
 local function NumberToLeBytes(Num: number): buffer
 	local Result = buffer.create(8)
 	for I = 0, 7 do
@@ -84,14 +100,8 @@ function Custom:DecryptDetached(Nonce: buffer, Ciphertext: buffer, Tag: buffer, 
 	local MacInput = ConcatBuffers(Nonce, Aad, AadLen, Ciphertext, CiphertextLen)
 	local _, ExpectedTag = Blake3.DigestKeyed(self.AuthenticationKey, MacInput, 32)
 
-	if buffer.len(ExpectedTag) ~= buffer.len(Tag) then
+	if not ConstantTimeCompare(ExpectedTag, Tag) then
 		return false
-	end
-
-	for I = 0, buffer.len(Tag) - 1 do
-		if buffer.readu8(ExpectedTag, I) ~= buffer.readu8(Tag, I) then
-			return false
-		end
 	end
 
 	local KeyMaterial = ConcatBuffers(self.Key, Nonce)
