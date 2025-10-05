@@ -5,6 +5,6 @@ I came across this design in a Rust crate. It’s pretty interesting because it 
 ## Why ChaCha12 + BLAKE3?
 ChaCha12 is a faster, reduced round variant of ChaCha20 while still being secure (anything above 8 rounds is considered secure).
 
-BLAKE3 is a modern, high-performance hash function with strong cryptographic properties, used here to ensure integrity and commitment.
+BLAKE3 is the fastest hash from rbx-crypto.
 
 Not recommended for production use.
