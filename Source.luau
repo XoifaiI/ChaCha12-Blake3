@@ -30,19 +30,21 @@ local function ConcatBuffers(...)
 	return Result
 end
 
-local function ConstantTimeCompare(BufferA: buffer, BufferB: buffer): boolean
-	local LengthA = buffer.len(BufferA)
-	local LengthB = buffer.len(BufferB)
-	
-	local Difference = LengthA ~ LengthB
-	local CompareLength = math.min(LengthA, LengthB)
-	
-	for Index = 0, CompareLength - 1 do
-		local ByteA = buffer.readu8(BufferA, Index)
-		local ByteB = buffer.readu8(BufferB, Index)
-		Difference = bit32.bor(Difference, bit32.bxor(ByteA, ByteB))
+local function ConstantTimeCompare(Buffer1: buffer, Buffer2: buffer): boolean
+	local Length1 = buffer.len(Buffer1)
+	local Length2 = buffer.len(Buffer2)
+	if Length1 ~= Length2 then
+		return false
 	end
-	
+
+	local Difference = 0
+	for Index = 0, Length1 - 1 do
+		Difference = bit32.bor(Difference, bit32.bxor(
+			buffer.readu8(Buffer1, Index),
+			buffer.readu8(Buffer2, Index)
+			))
+	end
+
 	return Difference == 0
 end
 
